@@ -1,19 +1,8 @@
 import Ids from 'ids';
-
-import {
-  get,
-  isString,
-  set
-} from 'min-dash';
-
-import {
-  clone,
-  createInjector,
-  createFormContainer,
-  pathStringify
-} from './util';
+import { get, isString, set } from 'min-dash';
 
 import core from './core';
+import { clone, createFormContainer, createInjector, pathStringify } from './util';
 
 /**
  * @typedef { import('./types').Injector } Injector
@@ -24,6 +13,7 @@ import core from './core';
  * @typedef { import('./types').FormProperty } FormProperty
  * @typedef { import('./types').FormEvent } FormEvent
  * @typedef { import('./types').FormOptions } FormOptions
+ * @typedef { import('./types').CustomField } CustomField
  *
  * @typedef { {
  *   data: Data,
@@ -31,6 +21,7 @@ import core from './core';
  *   errors: Errors,
  *   properties: FormProperties,
  *   schema: Schema
+ * customFields: Array<CustomField>,
  * } } State
  */
 
@@ -59,10 +50,13 @@ export default class Form {
      */
     this._container = createFormContainer();
 
+
     const {
       container,
       injector = this._createInjector(options, this._container),
-      properties = {}
+      properties = {},
+      customFields = []
+
     } = options;
 
     /**
@@ -74,18 +68,24 @@ export default class Form {
       data: null,
       properties,
       errors: {},
-      schema: null
+      schema: null,
+      customFields
     };
 
     this.get = injector.get;
 
     this.invoke = injector.invoke;
 
+    injector.get('customFormFields').register();
+
+
     this.get('eventBus').fire('form.init');
 
     if (container) {
       this.attachTo(container);
     }
+
+
   }
 
   clear() {
@@ -335,7 +335,7 @@ export default class Form {
 
     return createInjector([
       { config: [ 'value', config ] },
-      { form: [ 'value', this ] },
+      { form: ['value', this] },
       core,
       ...modules,
       ...additionalModules

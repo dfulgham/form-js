@@ -1,20 +1,11 @@
-import {
-  CustomValuesGroup,
-  GeneralGroup,
-  ValidationGroup,
-  ValuesGroup
-} from './groups';
+import { get, set } from 'min-dash';
 
-import {
-  INPUTS,
-  textToLabel
-} from './Util';
-
-import {
-  useService
-} from '../../hooks';
-
+import { useService } from '../../hooks';
 import { iconsByType } from '../palette/icons';
+import { CollapsibleEntry, Group, TextInput } from './components';
+import { DescriptionEntry, KeyEntry, LabelEntry } from './entries';
+import { CustomValuesGroup, GeneralGroup, ValidationGroup, ValuesGroup } from './groups';
+import { INPUTS, textToLabel } from './Util';
 
 const labelsByType = {
   button: 'BUTTON',
@@ -28,9 +19,38 @@ const labelsByType = {
   textfield: 'TEXT FIELD',
 };
 
-function getGroups(field, editField) {
+function getGroups(field, editField, formEditor) {
   const { type } = field;
 
+  // get customPropertyPanelGroupsSchema groups from state
+  const { customPropertyPanelGroups,customFields } = formEditor._getState();
+
+
+  const isCustomType = !Object.keys(labelsByType).includes(type);
+
+
+  // add groups for custom type in order of appearance in customFeild's propertyPanelGroups
+  if (isCustomType) {
+    return customFields.find((cf)=>cf.type===type).propertyPanelGroups?.map(group => {
+      if (group === 'general') return GeneralGroup(field, editField);
+      if (group === 'values') return ValuesGroup(field, editField);
+      if (group === 'validation') return ValidationGroup(field, editField);
+      if (group === 'custom') return CustomValuesGroup(field, editField);
+
+      // check against customPropertyPanels
+      return customPropertyPanelGroups
+        .find(pg => pg.name === group)
+        .groupRenderer(
+          field,
+          editField,
+          { Group, TextInput, CollapsibleEntry, LabelEntry, DescriptionEntry, KeyEntry },
+          { get, set }
+        );
+
+    });
+  }
+
+  // else if type is of a built-in type
   const groups = [
     GeneralGroup(field, editField)
   ];
@@ -47,6 +67,8 @@ function getGroups(field, editField) {
     groups.push(CustomValuesGroup(field, editField));
   }
 
+  // check to see if any customPropertyPanelGroupsSchema groups exist for this type. and add them
+
   return groups;
 }
 
@@ -57,6 +79,10 @@ export default function PropertiesPanel(props) {
   } = props;
 
   const eventBus = useService('eventBus');
+  const formEditor = useService('formEditor');
+
+  // get customFields from state
+  const customFields = formEditor._getState().customFields;
 
   if (!field) {
     return <div class="fjs-properties-panel-placeholder">Select a form field to edit its properties.</div>;
@@ -68,9 +94,12 @@ export default function PropertiesPanel(props) {
 
   const { type } = field;
 
-  const Icon = iconsByType[ type ];
+  // get icon and label from customField if not internal type
+  // else get icon and label from <icon|label>ByType[type]
 
-  const label = labelsByType[ type ];
+  const Icon = iconsByType[ type ] || customFields.find(({ type: customType }) => customType === type)?.icon;
+
+  const label = labelsByType[ type ] || customFields.find(({ type: customType }) => customType === type)?.label;
 
   return (
     <div
@@ -95,7 +124,7 @@ export default function PropertiesPanel(props) {
         </div>
       </div>
       {
-        getGroups(field, editField)
+        getGroups(field, editField, formEditor)
       }
     </div>
   );

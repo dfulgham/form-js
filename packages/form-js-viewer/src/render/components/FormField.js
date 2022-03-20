@@ -1,12 +1,9 @@
+import { get } from 'min-dash';
 import { useContext } from 'preact/hooks';
 
-import { get } from 'min-dash';
-
-import { FormRenderContext } from '../context';
-
-import useService from '../hooks/useService';
-
 import { findErrors } from '../../util';
+import { FormRenderContext } from '../context';
+import useService from '../hooks/useService';
 
 const noop = () => false;
 
@@ -25,7 +22,7 @@ export default function FormField(props) {
   const {
     data,
     errors,
-    properties
+    properties,
   } = form._getState();
 
   const {

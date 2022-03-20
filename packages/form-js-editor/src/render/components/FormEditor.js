@@ -1,30 +1,14 @@
+import { FormComponent, FormContext, FormRenderContext } from '@bpmn-io/form-js-viewer';
+import dragula from 'dragula';
 import { render } from 'preact';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState
-} from 'preact/hooks';
-
-import {
-  FormComponent,
-  FormContext,
-  FormRenderContext
-} from '@bpmn-io/form-js-viewer';
-
-import useService from '../hooks/useService';
+import { useCallback, useContext, useEffect, useRef, useState } from 'preact/hooks';
 
 import { DragAndDropContext } from '../context';
-
-import Palette from './palette/Palette';
-import PropertiesPanel from './properties-panel/PropertiesPanel';
-
-import dragula from 'dragula';
-
-import { ListDeleteIcon } from './properties-panel/icons';
-
+import useService from '../hooks/useService';
 import { iconsByType } from './palette/icons';
+import Palette from './palette/Palette';
+import { ListDeleteIcon } from './properties-panel/icons';
+import PropertiesPanel from './properties-panel/PropertiesPanel';
 
 function ContextPad(props) {
   if (!props.children) {
@@ -305,7 +289,7 @@ export default function FormEditor(props) {
           </FormContext.Provider>
 
         </div>
-        <CreatePreview />
+        <CreatePreview formEditor={ formEditor } />
       </DragAndDropContext.Provider>
 
       <div class="fjs-properties-container">
@@ -331,11 +315,17 @@ function CreatePreview(props) {
 
   const { drake } = useContext(DragAndDropContext);
 
-  function handleCloned(clone, original, type) {
 
+  function handleCloned(clone, original, type) {
+    const { formEditor } = props;
+
+    const customFields = formEditor._getState()?.customFields;
     const fieldType = clone.dataset.fieldType;
 
-    const Icon = iconsByType[ fieldType ];
+    const currentField = customFields.find(({ type }) => type === fieldType);
+
+
+    const Icon = iconsByType[fieldType] || currentField.icon;
 
     if (fieldType) {
       clone.innerHTML = '';

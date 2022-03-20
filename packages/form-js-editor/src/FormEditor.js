@@ -1,19 +1,8 @@
+import { clone, createFormContainer, createInjector, schemaVersion } from '@bpmn-io/form-js-viewer';
 import Ids from 'ids';
-
-import {
-  isString,
-  set
-} from 'min-dash';
-
-import {
-  createInjector,
-  clone,
-  createFormContainer,
-  schemaVersion
-} from '@bpmn-io/form-js-viewer';
+import { isString, set } from 'min-dash';
 
 import core from './core';
-
 import EditorActionsModule from './features/editor-actions';
 import KeyboardModule from './features/keyboard';
 import ModelingModule from './features/modeling';
@@ -25,12 +14,15 @@ const ids = new Ids([ 32, 36, 1 ]);
  * @typedef { import('./types').Injector } Injector
  * @typedef { import('./types').Module } Module
  * @typedef { import('./types').Schema } Schema
- *
+ * @typedef { import('./types').CustomField } CustomField
+ * @typedef { import('./types').CustomPropertyPanelGroup } CustomPropertyPanelGroup
  * @typedef { import('./types').FormEditorOptions } FormEditorOptions
  * @typedef { import('./types').FormEditorProperties } FormEditorProperties
  *
  * @typedef { {
  *   properties: FormEditorProperties,
+ *   customFields: Array<CustomField>,
+ *   customPropertyPanelGroups: Array<CustomPropertyPanelGroup>,
  *   schema: Schema
  * } } State
  */
@@ -64,7 +56,9 @@ export default class FormEditor {
       container,
       exporter,
       injector = this._createInjector(options, this._container),
-      properties = {}
+      properties = {},
+      customFields = [],
+      customPropertyPanelGroups =[]
     } = options;
 
     /**
@@ -79,12 +73,15 @@ export default class FormEditor {
      */
     this._state = {
       properties,
+      customFields,
+      customPropertyPanelGroups,
       schema: null
     };
-
     this.get = injector.get;
 
     this.invoke = injector.invoke;
+
+    injector.get('customFormFields').register();
 
     this.get('eventBus').fire('form.init');
 

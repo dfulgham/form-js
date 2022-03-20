@@ -1,4 +1,10 @@
+import { useService } from '../../hooks';
 import { iconsByType } from './icons';
+
+/**
+ * @typedef { import('../../../types').CustomField} CustomField
+ */
+
 
 const types = [
   {
@@ -33,14 +39,31 @@ const types = [
 
 
 export default function Palette(props) {
+
+  const formEditor = useService('formEditor');
+
+
+  /**
+   * @type Array<CustomField>
+   */
+  const customFields = formEditor?._getState().customFields || [];
+  let _types = types;
+  if (customFields.length > 0) {
+    customFields.forEach(({ label, type, icon }) => {
+
+      // add if doesnt exist add it
+      if (!types.map(t => t.type).includes(type)) { _types.push({ label, type, icon }); }
+    });
+  }
+
   return <div class="fjs-palette">
     <div class="fjs-palette-header" title="Form elements library">
       <span class="fjs-hide-compact">FORM ELEMENTS </span>LIBRARY
     </div>
     <div class="fjs-palette-fields fjs-drag-container fjs-no-drop">
       {
-        types.map(({ label, type }) => {
-          const Icon = iconsByType[ type ];
+        _types.map(({ label, type, icon }) => {
+          const Icon = icon || iconsByType[type];
 
           return (
             <div

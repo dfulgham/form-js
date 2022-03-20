@@ -32,11 +32,15 @@ const customFields = [{
     const { formFieldClasses, prefixId } = Utils;
     const { Label, Description, Errors } = FieldComponents;
 
-    const { disabled = false, errors = [], field, value = '' } = props;
+    const { disabled = false, field, value = '' } = props;
 
     const { description, id, label, validate = {} } = field;
 
     const { required } = validate;
+
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [errors, setError] = useState([]);
+
 
     const convertBase64 = (file) => {
       return new Promise((resolve, reject) => {
@@ -61,6 +65,20 @@ const customFields = [{
         value: base64Value
       });
 
+      setError(_validate(base64Value));
+
+    };
+
+
+    const _validate = (value) => {
+      const { allowedMimeTypes } = field;
+
+      if (!allowedMimeTypes || allowedMimeTypes.length === 0) { return []; }
+      const _allowed = allowedMimeTypes.split(',');
+      const fileMime = value.split('data:')[1].split(';')[0];
+      if (allowedMimeTypes) {
+        return _allowed.includes(fileMime) ? [] : [`File type not allowed, must be one of: ${allowedMimeTypes}`];
+      }
     };
 
     const onReset = () => {
@@ -139,24 +157,15 @@ const customPropertyPanelGroups = [
     name: 'FileProperties',
     groupRenderer: (field, editField, Components, MinDash) => {
       const { id } = field;
-      const { get, set } = MinDash;
+      const { get } = MinDash;
       const { Group,TextInput } = Components;
-      const path =['validate','allowedMimeTypes'];
+      const path =['allowedMimeTypes'];
 
       // custom logic
 
-
-      const onChange = (key) => {
-        return (value) => {
-          const validate = get(field, [ 'validate' ], {});
-          editField(field, [ 'validate' ], set(validate, [ key ], value));
-        };
-      };
       const onInput = (value) => {
         if (editField && path) {
           editField(field, path, value);
-        } else {
-          onChange(value);
         }
       };
 
@@ -167,7 +176,7 @@ const customPropertyPanelGroups = [
               id={ `${id}-allowedMimeTypes` }
               label="Allowed Mime Types"
               onInput={ onInput }
-              value={ get(field, path) }
+              value={ get(field,path) }
             />
             <div class="fjs-properties-panel-description">Comma separated list of file types. e.g. 'image/png,application/pdf'</div>
           </div>

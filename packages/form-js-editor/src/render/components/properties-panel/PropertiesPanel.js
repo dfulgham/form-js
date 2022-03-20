@@ -23,7 +23,7 @@ function getGroups(field, editField, formEditor) {
   const { type } = field;
 
   // get customPropertyPanelGroupsSchema groups from state
-  const { customPropertyPanelGroups,customFields } = formEditor._getState();
+  const { customPropertyPanelGroups, customFields } = formEditor?._getState() || {};
 
 
   const isCustomType = !Object.keys(labelsByType).includes(type);
@@ -82,7 +82,7 @@ export default function PropertiesPanel(props) {
   const formEditor = useService('formEditor');
 
   // get customFields from state
-  const customFields = formEditor._getState().customFields;
+  const customFields = formEditor?._getState().customFields;
 
   if (!field) {
     return <div class="fjs-properties-panel-placeholder">Select a form field to edit its properties.</div>;

@@ -1,19 +1,11 @@
-import {
-  fireEvent,
-  render,
-  screen
-} from '@testing-library/preact/pure';
-
-import PropertiesPanel from '../../../src/render/components/properties-panel/PropertiesPanel';
+import { fireEvent, render, screen } from '@testing-library/preact/pure';
 
 import { removeKey } from '../../../src/render/components/properties-panel/groups/CustomValuesGroup';
-
-import { WithFormEditorContext } from './helper';
-
-import schema from '../form.json';
-import defaultValues from '../defaultValues.json';
-
+import PropertiesPanel from '../../../src/render/components/properties-panel/PropertiesPanel';
 import { insertStyles } from '../../TestHelper';
+import defaultValues from '../defaultValues.json';
+import schema from '../form.json';
+import { WithFormEditorContext } from './helper';
 
 insertStyles();
 
